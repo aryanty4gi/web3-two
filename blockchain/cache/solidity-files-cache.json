@@ -1,0 +1,41 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "C:\\Users\\ARYAN\\OneDrive\\Desktop\\kwalaa\\kwalaa-med-verify\\blockchain\\contracts\\MedicineVerification.sol": {
+      "lastModificationDate": 1761926299132,
+      "contentHash": "6f4d9be790f0b20e2bc49c86dbe1023b",
+      "sourceName": "contracts/MedicineVerification.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "MedicineVerification"
+      ]
+    }
+  }
+}

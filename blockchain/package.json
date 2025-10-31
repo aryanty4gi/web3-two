@@ -1,0 +1,17 @@
+{
+  "name": "kwalaa-blockchain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hardhat setup to deploy MedicineVerification to Sepolia/Polygon Amoy",
+  "scripts": {
+    "compile": "hardhat compile",
+    "clean": "hardhat clean",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:amoy": "hardhat run scripts/deploy.js --network amoy"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.10",
+    "dotenv": "^16.4.5"
+  }
+}
