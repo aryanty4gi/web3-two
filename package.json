@@ -9,12 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@yudiel/react-qr-scanner": "^2.4.1",
     "ethers": "^5.7.2",
     "next": "16.0.1",
     "qrcode": "^1.5.4",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-qr-reader": "^3.0.0-beta-1",
     "web3modal": "^1.9.12"
   },
   "devDependencies": {

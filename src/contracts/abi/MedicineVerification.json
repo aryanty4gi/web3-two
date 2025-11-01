@@ -1,0 +1,90 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "manufacturer", "type": "address" }
+    ],
+    "name": "authorizeManufacturer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "manufacturer", "type": "address" }
+    ],
+    "name": "revokeManufacturer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "batchId", "type": "string" },
+      { "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+      { "internalType": "string", "name": "ipfsCid", "type": "string" }
+    ],
+    "name": "registerMedicineBatch",
+    "outputs": [
+      { "internalType": "bytes32", "name": "", "type": "bytes32" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "batchId", "type": "string" }
+    ],
+    "name": "verifyBatch",
+    "outputs": [
+      { "internalType": "bool", "name": "isAuthentic", "type": "bool" },
+      { "internalType": "string", "name": "ipfsCid", "type": "string" },
+      { "internalType": "uint256", "name": "registeredAt", "type": "uint256" },
+      { "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "internalType": "uint256", "name": "verificationCount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "batchIdHash", "type": "bytes32" }
+    ],
+    "name": "verifyByHash",
+    "outputs": [
+      { "internalType": "bool", "name": "isAuthentic", "type": "bool" },
+      { "internalType": "string", "name": "ipfsCid", "type": "string" },
+      { "internalType": "uint256", "name": "registeredAt", "type": "uint256" },
+      { "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "internalType": "uint256", "name": "verificationCount", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes32", "name": "batchIdHash", "type": "bytes32" }
+    ],
+    "name": "getBatchRecordByHash",
+    "outputs": [
+      { "internalType": "bool", "name": "isRegistered", "type": "bool" },
+      { "internalType": "string", "name": "ipfsCid", "type": "string" },
+      { "internalType": "uint256", "name": "registeredAt", "type": "uint256" },
+      { "internalType": "address", "name": "manufacturer", "type": "address" },
+      { "internalType": "uint256", "name": "verificationCount", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "batchId", "type": "string" }
+    ],
+    "name": "getBatchIdHashFromBatchId",
+    "outputs": [
+      { "internalType": "bytes32", "name": "", "type": "bytes32" }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  }
+]

@@ -1,33 +1,30 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// Minimal on-chain storage with off-chain details (IPFS/backend)
 contract MedicineVerification {
-    struct Medicine {
-        string manufacturer;
-        string productName;
-        uint256 productionDate;
-        uint256 expiryDate;
-        string batchNumber;
-        string[] supplyChainCheckpoints;
-        uint256 verificationCount;
-        bool isRegistered;
+    struct BatchRecord {
+        address manufacturer; // manufacturer wallet/address
+        uint256 registeredAt; // timestamp when registered
+        string ipfsCid; // IPFS CID or backend pointer
+        uint256 verificationCount; // number of verifications
+        bool isRegistered; // existence flag
     }
 
-    // Mapping from batch ID hash to Medicine details
-    mapping(bytes32 => Medicine) public medicines;
-    
+    // Mapping from batch ID hash to minimal record
+    mapping(bytes32 => BatchRecord) public batches;
+
     // Mapping to track authorized manufacturers
     mapping(address => bool) public authorizedManufacturers;
-    
+
     // Owner of the contract
     address public owner;
-    
+
     // Events
-    event MedicineRegistered(bytes32 batchIdHash, string batchNumber, string manufacturer);
-    event MedicineVerified(bytes32 batchIdHash, string batchNumber, uint256 timestamp);
+    event BatchRegistered(bytes32 batchIdHash, address manufacturer, string ipfsCid);
+    event BatchVerified(bytes32 batchIdHash, uint256 timestamp);
     event ManufacturerAuthorized(address manufacturer);
     event ManufacturerRevoked(address manufacturer);
-    event SupplyChainCheckpointAdded(bytes32 batchIdHash, string checkpoint);
 
     constructor() {
         owner = msg.sender;
@@ -54,92 +51,85 @@ contract MedicineVerification {
         emit ManufacturerRevoked(manufacturer);
     }
 
-    function registerMedicine(
-        string memory _manufacturer,
-        string memory _productName,
-        uint256 _productionDate,
-        uint256 _expiryDate,
-        string memory _batchNumber
+    // Register minimal batch data; details live off-chain at ipfsCid/backend
+    function registerMedicineBatch(
+        string memory batchId,
+        address manufacturer,
+        uint256 timestamp,
+        string memory ipfsCid
     ) public onlyAuthorized returns (bytes32) {
-        // Create a unique hash for this batch
-        bytes32 batchIdHash = keccak256(abi.encodePacked(_batchNumber, _manufacturer, _productionDate));
-        
-        // Ensure this batch hasn't been registered before
-        require(!medicines[batchIdHash].isRegistered, "Batch already registered");
-        
-        // Initialize empty array for supply chain checkpoints
-        string[] memory checkpoints = new string[](0);
-        
-        // Register the medicine
-        medicines[batchIdHash] = Medicine({
-            manufacturer: _manufacturer,
-            productName: _productName,
-            productionDate: _productionDate,
-            expiryDate: _expiryDate,
-            batchNumber: _batchNumber,
-            supplyChainCheckpoints: checkpoints,
+        bytes32 batchIdHash = keccak256(abi.encodePacked(batchId));
+        require(!batches[batchIdHash].isRegistered, "Batch already registered");
+        batches[batchIdHash] = BatchRecord({
+            manufacturer: manufacturer,
+            registeredAt: timestamp,
+            ipfsCid: ipfsCid,
             verificationCount: 0,
             isRegistered: true
         });
-        
-        emit MedicineRegistered(batchIdHash, _batchNumber, _manufacturer);
-        
+        emit BatchRegistered(batchIdHash, manufacturer, ipfsCid);
         return batchIdHash;
     }
 
-    function addSupplyChainCheckpoint(bytes32 batchIdHash, string memory checkpoint) public onlyAuthorized {
-        require(medicines[batchIdHash].isRegistered, "Medicine not registered");
-        
-        medicines[batchIdHash].supplyChainCheckpoints.push(checkpoint);
-        
-        emit SupplyChainCheckpointAdded(batchIdHash, checkpoint);
-    }
-
-    function verifyMedicine(string memory _batchNumber, string memory _manufacturer, uint256 _productionDate) public returns (bool) {
-        // Recreate the hash to look up the medicine
-        bytes32 batchIdHash = keccak256(abi.encodePacked(_batchNumber, _manufacturer, _productionDate));
-        
-        // Check if medicine exists
-        bool isAuthentic = medicines[batchIdHash].isRegistered;
-        
-        // Increment verification count
+    // Verify by batchId string (does NOT expose off-chain details directly)
+    function verifyBatch(string memory batchId)
+        public
+        returns (
+            bool isAuthentic,
+            string memory ipfsCid,
+            uint256 registeredAt,
+            address manufacturer,
+            uint256 verificationCount
+        )
+    {
+        bytes32 batchIdHash = keccak256(abi.encodePacked(batchId));
+        BatchRecord storage br = batches[batchIdHash];
+        isAuthentic = br.isRegistered;
         if (isAuthentic) {
-            medicines[batchIdHash].verificationCount++;
-            emit MedicineVerified(batchIdHash, _batchNumber, block.timestamp);
+            br.verificationCount += 1;
+            emit BatchVerified(batchIdHash, block.timestamp);
         }
-        
-        return isAuthentic;
+        return (isAuthentic, br.ipfsCid, br.registeredAt, br.manufacturer, br.verificationCount);
     }
 
-    function getMedicineDetails(bytes32 batchIdHash) public view returns (
-        string memory manufacturer,
-        string memory productName,
-        uint256 productionDate,
-        uint256 expiryDate,
-        string memory batchNumber,
-        uint256 verificationCount,
-        bool isRegistered
-    ) {
-        Medicine storage medicine = medicines[batchIdHash];
-        
-        return (
-            medicine.manufacturer,
-            medicine.productName,
-            medicine.productionDate,
-            medicine.expiryDate,
-            medicine.batchNumber,
-            medicine.verificationCount,
-            medicine.isRegistered
-        );
+    // Convenience verification by hash (QRs often carry hash)
+    function verifyByHash(bytes32 batchIdHash)
+        public
+        returns (
+            bool isAuthentic,
+            string memory ipfsCid,
+            uint256 registeredAt,
+            address manufacturer,
+            uint256 verificationCount
+        )
+    {
+        BatchRecord storage br = batches[batchIdHash];
+        isAuthentic = br.isRegistered;
+        if (isAuthentic) {
+            br.verificationCount += 1;
+            emit BatchVerified(batchIdHash, block.timestamp);
+        }
+        return (isAuthentic, br.ipfsCid, br.registeredAt, br.manufacturer, br.verificationCount);
     }
 
-    function getSupplyChainCheckpoints(bytes32 batchIdHash) public view returns (string[] memory) {
-        require(medicines[batchIdHash].isRegistered, "Medicine not registered");
-        
-        return medicines[batchIdHash].supplyChainCheckpoints;
+    // Read-only accessor by hash (does not increment verificationCount)
+    function getBatchRecordByHash(bytes32 batchIdHash)
+        public
+        view
+        returns (
+            bool isRegistered,
+            string memory ipfsCid,
+            uint256 registeredAt,
+            address manufacturer,
+            uint256 verificationCount
+        )
+    {
+        BatchRecord storage br = batches[batchIdHash];
+        return (br.isRegistered, br.ipfsCid, br.registeredAt, br.manufacturer, br.verificationCount);
     }
 
-    function getBatchIdHash(string memory _batchNumber, string memory _manufacturer, uint256 _productionDate) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_batchNumber, _manufacturer, _productionDate));
+    // Helper to compute hash from a simple batchId string
+    function getBatchIdHashFromBatchId(string memory batchId) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(batchId));
     }
 }
